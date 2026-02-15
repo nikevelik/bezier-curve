@@ -7,6 +7,7 @@
     this.pts = [];
     this.t = 0.5;
     this.dragged = null;
+    this.wasDragging = false;
     this.showBezier = false;
     this.calc = (p0, p1, t) => ({ x: p0.x + (p1.x-p0.x)*t, y: p0.y + (p1.y-p0.y)*t });
     this.dcstlj = (t, pts) => {
@@ -21,10 +22,10 @@
   }
   addEvents(doc, cvs, ipt, toggle, clear, del) {
     const getPos = e => ({ x: e.clientX - this.c.getBoundingClientRect().left, y: e.clientY - this.c.getBoundingClientRect().top });
-    this.c.addEventListener('mousedown', e => this.dragged = this.pts.find(p => Math.hypot(p.x-getPos(e).x, p.y-getPos(e).y)<=5) || null);
-    this.c.addEventListener('mousemove', e => this.dragged && Object.assign(this.dragged, getPos(e)));
+    this.c.addEventListener('mousedown', e => { this.dragged = this.pts.find(p => Math.hypot(p.x-getPos(e).x, p.y-getPos(e).y)<=5) || null; this.wasDragging = false; });
+    this.c.addEventListener('mousemove', e => { if(this.dragged) { Object.assign(this.dragged, getPos(e)); this.wasDragging = true; } });
     this.c.addEventListener('mouseup', () => this.dragged = null);
-    this.c.addEventListener('click', e => this.pts.push(getPos(e)));
+    this.c.addEventListener('click', e => { if(!this.wasDragging) this.pts.push(getPos(e)); this.wasDragging = false; });
     doc.getElementById(ipt).addEventListener('input', () => this.t = parseFloat(doc.getElementById(ipt).value));
     doc.getElementById(toggle).addEventListener('change', () => this.showBezier = doc.getElementById(toggle).checked);
     doc.getElementById(clear).addEventListener('click', () => this.pts = []);
